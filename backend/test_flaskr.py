@@ -27,6 +27,16 @@ class TriviaTestCase(unittest.TestCase):
         self.database_path = "postgresql://{}:{}@{}/{}".format(DB_USER,DB_PASSWORD,DB_HOST, self.database_name)
         setup_db(self.app, self.database_path)
 
+        self.new_question = {"question":"Who is the current manager of Manchester United?",
+                                "answer":"Eric Ten Hag",
+                                "category": 6,
+                                "difficulty": 3}
+
+        self.new_question_2 = {"question":"Who is the current manager of Manchester United?",
+                                "answer":"ETH",
+                                "category":  ' ',
+                                "difficulty": ' '}
+
         # binds the app to the current context
         with self.app.app_context():
             self.db = SQLAlchemy()
@@ -48,10 +58,10 @@ class TriviaTestCase(unittest.TestCase):
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
-        self.assertEqual(data['page'],1)
-        self.assertTrue(data['question'])
-        self.assertTrue(data['answer'])
-        self.assertTrue(data['difficulty'])
+        self.assertTrue(data['questions'])
+        self.assertTrue(data['total_questions'])
+        self.assertTrue(data['current_category'])
+        self.assertTrue(data['categories'])
 
     def test_404_requested_page_outside_range(self):
         res = self.client().get('/questions?page=1000')
@@ -68,6 +78,44 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
         self.assertTrue(data['categories'])
+
+    # def test_delete_question_of_provided_id(self):
+    #     res =self.client().delete('/questions/13')
+    #     data = json.loads(res.data)
+
+    #     question = Question.query.filter(Question.id == 10).one_or_none()
+
+    #     self.assertEqual(res.status_code, 200)
+    #     self.assertEqual(data['success'],True)
+    #     self.assertTrue(data['questions'])
+    #     self.assertEqual(question, None)
+
+    def test_delete_question_if_not_exists(self):
+        res = self.client().delete('/questions/400')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'],'unprocessable entity')
+
+    def test_insert_new_question(self):
+        res = self.client().post('/questions', json=self.new_question)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        #self.assertEqual(data['success'], True)
+        self.assertTrue(data['question'])
+        self.assertTrue(data['answer'])
+        self.assertTrue(data['difficulty'])
+        self.assertTrue(data['category'])
+
+    def test_400_if_question_creation_request_incorrect(self):
+        res = self.client().post('/questions', json=self.new_question_2)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'],'bad request')
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()
