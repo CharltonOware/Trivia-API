@@ -1,5 +1,6 @@
 import os
 import random
+import sys
 
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -21,11 +22,7 @@ def create_app(test_config=None):
         response.headers.add("Access-Control-Allow-Methods","GET,POST,PATCH,DELETE")
         response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
         return response
-    """
-    # @TODO:
-    # Create an endpoint to handle GET requests
-    # for all available categories.
-    # """
+    
     @app.route('/categories')
     def get_categories():
         categories = Category.query.all()
@@ -37,13 +34,6 @@ def create_app(test_config=None):
             "categories": formatted_categories
         })
 
-
-    # """
-    # @TODO:
-    # Create an endpoint to handle GET requests for questions,
-    # including pagination (every 10 questions).
-    # This endpoint should return a list of questions,
-    # number of total questions, current category, categories.
 
     # TEST: At this point, when you start the application
     # you should see questions and categories generated,
@@ -64,7 +54,6 @@ def create_app(test_config=None):
         categories = Category.query.all()
         formatted_categories = [category.format() for category in categories]
         
-
         return jsonify({
             "success": True,
             "questions": formatted_questions[start:end],
@@ -73,13 +62,29 @@ def create_app(test_config=None):
             "categories": formatted_categories
         })
 
-    # """
-    # @TODO:
-    # Create an endpoint to DELETE question using a question ID.
+    """
+    @TODO:
+    Create an endpoint to DELETE question using a question ID.
 
-    # TEST: When you click the trash icon next to a question, the question will be removed.
-    # This removal will persist in the database and when you refresh the page.
-    # """
+    TEST: When you click the trash icon next to a question, the question will be removed.
+    This removal will persist in the database and when you refresh the page.
+    """
+    @app.route('/questions/<int:question_id>', methods=['DELETE'])
+    def delete_question(question_id):
+        try:
+            question = Question.query.filter(Question.id == question_id).one_or_none()
+            if question is None:
+                abort(404)
+            question.delete()
+            return jsonify({
+                'success': True,
+                'questions': list(Question.query.all())
+            })
+        except:
+            print(sys.exc_info())
+            abort(422)
+
+
 
     # """
     # @TODO:
