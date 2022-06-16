@@ -63,9 +63,6 @@ def create_app(test_config=None):
         })
 
     """
-    @TODO:
-    Create an endpoint to DELETE question using a question ID.
-
     TEST: When you click the trash icon next to a question, the question will be removed.
     This removal will persist in the database and when you refresh the page.
     """
@@ -86,16 +83,31 @@ def create_app(test_config=None):
 
 
 
-    # """
-    # @TODO:
-    # Create an endpoint to POST a new question,
-    # which will require the question and answer text,
-    # category, and difficulty score.
+    """
+    @TODO:
+    Create an endpoint to POST a new question,
+    which will require the question and answer text,
+    category, and difficulty score.
 
-    # TEST: When you submit a question on the "Add" tab,
-    # the form will clear and the question will appear at the end of the last page
-    # of the questions list in the "List" tab.
-    # """
+    TEST: When you submit a question on the "Add" tab,
+    the form will clear and the question will appear at the end of the last page
+    of the questions list in the "List" tab.
+     """
+    @app.route('/questions', methods=['POST'])
+    def create_new_question():
+        body = request.get_json()
+        try:
+            new_question = body['question']
+            new_answer = body['answer']
+            new_category = body['category']
+            new_difficulty = body['difficulty']
+            question = Question(question=new_question, answer=new_answer, category=new_category, difficulty=new_difficulty)
+            question.insert()
+
+            return jsonify(question.format())
+        except:
+            abort(400)
+            print(sys.exc_info())
 
     # """
     # @TODO:
@@ -134,6 +146,36 @@ def create_app(test_config=None):
     # Create error handlers for all expected errors
     # including 404 and 422.
     # """
+    @app.errorhandler(400)
+    def bad_request(error):
+        return jsonify({
+            'success': False,
+            'error': 400,
+            'message': 'bad request'
+        }), 400
 
+    @app.errorhandler(404)
+    def not_found(error):
+        return jsonify({
+            'success': False,
+            'error': 404,
+            'message': 'resource not found'
+        }), 404
+
+    @app.errorhandler(422)
+    def unprocessable_entity(error):
+        return jsonify({
+            'success': False,
+            'error': 422,
+            'message': 'unprocessable entity'
+        }), 422
+
+    @app.errorhandler(500)
+    def internal_server_error(error):
+        return jsonify({
+            'success': False,
+            'error': 500,
+            'message': 'internal server error'
+        }), 500
     return app
 
