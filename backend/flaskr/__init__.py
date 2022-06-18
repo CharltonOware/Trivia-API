@@ -21,6 +21,7 @@ def create_app(test_config=None):
         response.headers.add("Access-Control-Allow-Headers","Content-Type,Authorization,true")
         response.headers.add("Access-Control-Allow-Methods","GET,POST,PATCH,DELETE")
         response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
         return response
     
     @app.route('/categories')
@@ -84,11 +85,6 @@ def create_app(test_config=None):
 
 
     """
-    @TODO:
-    Create an endpoint to POST a new question,
-    which will require the question and answer text,
-    category, and difficulty score.
-
     TEST: When you submit a question on the "Add" tab,
     the form will clear and the question will appear at the end of the last page
     of the questions list in the "List" tab.
@@ -141,11 +137,6 @@ def create_app(test_config=None):
     # and shown whether they were correct or not.
     # """
 
-    # """
-    # @TODO:
-    # Create error handlers for all expected errors
-    # including 404 and 422.
-    # """
     @app.errorhandler(400)
     def bad_request(error):
         return jsonify({
