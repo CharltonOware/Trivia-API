@@ -29,7 +29,7 @@ def create_app(test_config=None):
     def after_request(response):
         response.headers.add("Access-Control-Allow-Headers","Content-Type,Authorization,true")
         response.headers.add("Access-Control-Allow-Methods","GET,POST,PATCH,DELETE,OPTIONS")
-        #response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
         return response
     
     @app.route('/categories')
@@ -91,14 +91,14 @@ def create_app(test_config=None):
     def create_new_question():
         body = request.get_json()
         search = body.get('searchTerm', None)
-        new_question = body['question']
-        new_answer = body['answer']
-        new_category = body['category']
-        new_difficulty = body['difficulty']
+        new_question = body.get('question', None)
+        new_answer = body.get('answer', None)
+        new_category = body.get('category', None)
+        new_difficulty = body.get('difficulty', None)
         try:
             #If there is a search term, get all questions that meet the search term criteria
             if search:
-                selection = Question.query.order_by(Question.id).filter(Question.question.ilike('%{}%'.format(search)))
+                selection = Question.query.order_by(Question.id).filter(Question.question.ilike('%{}%'.format(search))).all()
                 current_questions = paginate_questions(request, selection)
 
                 return jsonify({
