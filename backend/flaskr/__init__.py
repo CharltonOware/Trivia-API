@@ -1,5 +1,3 @@
-import os
-import random
 import sys
 
 from flask import Flask, request, abort, jsonify
@@ -9,6 +7,17 @@ from flask_cors import CORS
 from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
+
+#Define helper function paginate_questions
+def paginate_questions(request, selection):
+    page = request.args.get('page',1,type=int)
+    start = (page-1) * QUESTIONS_PER_PAGE
+    end = start + QUESTIONS_PER_PAGE
+
+    questions = [question.format() for question in selection]
+    current_questions = questions[start:end]
+
+    return current_questions
 
 def create_app(test_config=None):
     # create and configure the app
@@ -43,23 +52,21 @@ def create_app(test_config=None):
     # """
     @app.route('/questions')
     def get_paginated_questions():
-        page = request.args.get('page',1,type=int)
-        start = (page - 1) * QUESTIONS_PER_PAGE
-        end = start + QUESTIONS_PER_PAGE
-
-        questions = Question.query.order_by(Question.id).all()
-        if questions is None:
+        selection = Question.query.order_by(Question.id).all()
+        if selection is None:
             abort(404)
-        formatted_questions = [question.format() for question in questions]
-        #categories = {question.category for question in questions}
+        current_questions = paginate_questions(request, selection)
         categories = Category.query.all()
-        formatted_categories = [category.format() for category in categories]
+        #formatted_categories = {category.format() for category in categories}
+        formatted_categories = {}
+        for category in categories:
+            formatted_categories[category.id] = category.type
         
         return jsonify({
             "success": True,
-            "questions": formatted_questions[start:end],
-            "total_questions": len(questions),
-            "current_category": ' ',
+            "questions": current_questions,
+            "total_questions": len(selection),
+            "current_category": 'Sports',
             "categories": formatted_categories
         })
 
@@ -92,24 +99,40 @@ def create_app(test_config=None):
     @app.route('/questions', methods=['POST'])
     def create_new_question():
         body = request.get_json()
+        search = body.get('searchTerm', None)
+        new_question = body['question']
+        new_answer = body['answer']
+        new_category = body['category']
+        new_difficulty = body['difficulty']
         try:
-            new_question = body['question']
-            new_answer = body['answer']
-            new_category = body['category']
-            new_difficulty = body['difficulty']
-            question = Question(question=new_question, answer=new_answer, category=new_category, difficulty=new_difficulty)
-            question.insert()
+            #If there is a search term, get all questions that meet the search term criteria
+            if search:
+                selection = Question.query.filter(Question.question.ilike('%{}%'.format(search))).all()
+                current_questions = paginate_questions(request, selection)
 
-            return jsonify(question.format())
+                return jsonify({
+                        'success': True,
+                        'questions': current_questions,
+                        'total_questions': len(selection),
+                        'current_category': ' '
+                    })
+            #If no search term provided, insert the provided question data into the DB and return new list of questions
+            else:
+                question = Question(question=new_question, answer=new_answer, category=new_category, difficulty=new_difficulty)
+                question.insert()
+
+                selection = Question.query.order_by(Question.id).all()
+                current_questions = paginate_questions(request, selection)
+
+                return jsonify({
+                    'success': True,
+                    'questions': current_questions,
+                    'total_questions': len(selection),
+                    'current_category': ' '
+                })
         except:
             abort(400)
             print(sys.exc_info())
-
-    # """
-    # @TODO:
-    # Create a POST endpoint to get questions based on a search term.
-    # It should return any questions for whom the search term
-    # is a substring of the question.
 
     # TEST: Search by any phrase. The questions list will update to include
     # only question that include that string within their question.
