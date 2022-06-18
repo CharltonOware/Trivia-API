@@ -37,6 +37,8 @@ class TriviaTestCase(unittest.TestCase):
                                 "category":  ' ',
                                 "difficulty": ' '}
 
+        self.search_term = {"searchTerm": 'soccer'}
+
         # binds the app to the current context
         with self.app.app_context():
             self.db = SQLAlchemy()
@@ -98,16 +100,26 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], False)
         self.assertEqual(data['message'],'unprocessable entity')
 
+    def test_search_question(self):
+        res = self.client().post('/questions', json=self.search_term)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['questions'])
+        self.assertTrue(data['total_questions'])
+        self.assertTrue(data['current_category'])
+
+
     def test_insert_new_question(self):
         res = self.client().post('/questions', json=self.new_question)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
-        #self.assertEqual(data['success'], True)
-        self.assertTrue(data['question'])
-        self.assertTrue(data['answer'])
-        self.assertTrue(data['difficulty'])
-        self.assertTrue(data['category'])
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['questions'])
+        self.assertTrue(data['total_questions'])
+        self.assertTrue(data['current_category'])
 
     def test_400_if_question_creation_request_incorrect(self):
         res = self.client().post('/questions', json=self.new_question_2)
