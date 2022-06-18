@@ -38,18 +38,15 @@ def create_app(test_config=None):
         categories = Category.query.all()
         if categories is None:
             abort(404)
-        formatted_categories = [category.format() for category in categories]
+        formatted_categories = {}
+        for category in categories:
+            formatted_categories[category.id] = category.type
         return jsonify({
             "success": True,
             "categories": formatted_categories
-        })
+       })
 
 
-    # TEST: At this point, when you start the application
-    # you should see questions and categories generated,
-    # ten questions per page and pagination at the bottom of the screen for three pages.
-    # Clicking on the page numbers should update the questions.
-    # """
     @app.route('/questions')
     def get_paginated_questions():
         selection = Question.query.order_by(Question.id).all()
@@ -70,10 +67,7 @@ def create_app(test_config=None):
             "categories": formatted_categories
         })
 
-    """
-    TEST: When you click the trash icon next to a question, the question will be removed.
-    This removal will persist in the database and when you refresh the page.
-    """
+    
     @app.route('/questions/<int:question_id>', methods=['DELETE'])
     def delete_question(question_id):
         try:
@@ -81,9 +75,12 @@ def create_app(test_config=None):
             if question is None:
                 abort(404)
             question.delete()
+
+            questions = Question.query.all()
+            current_questions = paginate_questions(request, questions)
             return jsonify({
                 'success': True,
-                'questions': list(Question.query.all())
+                'questions': current_questions
             })
         except:
             print(sys.exc_info())
