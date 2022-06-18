@@ -23,14 +23,13 @@ def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__)
     setup_db(app)
-    CORS(app, resources={r"/*":{"origins": "http://localhost:3000"}})
+    CORS(app, resources={r"/*":{"origins": "*"}})
 
     @app.after_request
     def after_request(response):
         response.headers.add("Access-Control-Allow-Headers","Content-Type,Authorization,true")
-        response.headers.add("Access-Control-Allow-Methods","GET,POST,PATCH,DELETE")
-        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        response.headers.add("Access-Control-Allow-Methods","GET,POST,PATCH,DELETE,OPTIONS")
+        #response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
         return response
     
     @app.route('/categories')
@@ -38,9 +37,7 @@ def create_app(test_config=None):
         categories = Category.query.all()
         if categories is None:
             abort(404)
-        formatted_categories = {}
-        for category in categories:
-            formatted_categories[category.id] = category.type
+        formatted_categories = {category.id: category.type for category in categories}
         return jsonify({
             "success": True,
             "categories": formatted_categories
@@ -54,10 +51,7 @@ def create_app(test_config=None):
             abort(404)
         current_questions = paginate_questions(request, selection)
         categories = Category.query.all()
-        #formatted_categories = {category.format() for category in categories}
-        formatted_categories = {}
-        for category in categories:
-            formatted_categories[category.id] = category.type
+        formatted_categories = {category.id: category.type for category in categories}
         
         return jsonify({
             "success": True,
@@ -104,7 +98,7 @@ def create_app(test_config=None):
         try:
             #If there is a search term, get all questions that meet the search term criteria
             if search:
-                selection = Question.query.filter(Question.question.ilike('%{}%'.format(search))).all()
+                selection = Question.query.order_by(Question.id).filter(Question.question.ilike('%{}%'.format(search)))
                 current_questions = paginate_questions(request, selection)
 
                 return jsonify({
