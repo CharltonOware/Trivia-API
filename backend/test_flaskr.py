@@ -81,16 +81,16 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], True)
         self.assertTrue(data['categories'])
 
-    # def test_delete_question_of_provided_id(self):
-    #     res =self.client().delete('/questions/13')
-    #     data = json.loads(res.data)
+    def test_delete_question_of_provided_id(self):
+        res =self.client().delete('/questions/12')
+        data = json.loads(res.data)
 
-    #     question = Question.query.filter(Question.id == 10).one_or_none()
+        question = Question.query.filter(Question.id == 12).one_or_none()
 
-    #     self.assertEqual(res.status_code, 200)
-    #     self.assertEqual(data['success'],True)
-    #     self.assertTrue(data['questions'])
-    #     self.assertEqual(question, None)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'],True)
+        self.assertTrue(data['questions'])
+        self.assertEqual(question, None)
 
     def test_delete_question_if_not_exists(self):
         res = self.client().delete('/questions/400')
@@ -128,6 +128,24 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 400)
         self.assertEqual(data['success'], False)
         self.assertEqual(data['message'],'bad request')
+
+    def test_filter_questions_by_category(self):
+        res = self.client().get('/categories/3/questions')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['questions'])
+        self.assertTrue(data['total_questions'])
+        self.assertTrue(data['current_category'])
+
+    def test_404_if_category_not_exists(self):
+        res = self.client().get('/categories/1000/questions')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data['success'], False)
+        self.assertTrue(data['message'], 'resource not found')
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()
