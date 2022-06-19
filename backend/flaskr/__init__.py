@@ -125,11 +125,6 @@ def create_app(test_config=None):
             abort(400)
             print(sys.exc_info())
 
-    # TEST: Search by any phrase. The questions list will update to include
-    # only question that include that string within their question.
-    # Try using the word "title" to start.
-    # """
-
     # """
     # @TODO:
     # Create a GET endpoint to get questions based on category.
@@ -138,7 +133,25 @@ def create_app(test_config=None):
     # categories in the left column will cause only questions of that
     # category to be shown.
     # """
+    @app.route('/categories/<int:category_id>/questions')
+    def get_question_by_category(category_id):
+        category = Category.query.filter_by(id=category_id).one_or_none()
+        if category is None:
+            abort(404)
+        try:
+            #convert category.id to string since it is defined as such in the Question model
+            selection = Question.query.filter_by(category=str(category.id)).order_by(Question.id).all()
+            current_questions = paginate_questions(request,selection)
 
+            return jsonify({
+                'success': True,
+                'questions': current_questions,
+                'total_questions': len(selection),
+                'current_category': selection[1].id
+            })
+        except:
+            abort(400)
+            print(sys.exc_info())
     # """
     # @TODO:
     # Create a POST endpoint to get questions to play the quiz.
