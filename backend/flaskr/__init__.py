@@ -51,6 +51,7 @@ def create_app(test_config=None):
             abort(404)
         current_questions = paginate_questions(request, selection)
         categories = Category.query.all()
+        #store dictionary object having 'id': 'type' key:value pairs of the existing categories
         formatted_categories = {category.id: category.type for category in categories}
         
         return jsonify({
@@ -122,17 +123,10 @@ def create_app(test_config=None):
                     'current_category': ' '
                 })
         except:
-            abort(400)
             print(sys.exc_info())
+            abort(400)
+            
 
-    # """
-    # @TODO:
-    # Create a GET endpoint to get questions based on category.
-
-    # TEST: In the "List" tab / main screen, clicking on one of the
-    # categories in the left column will cause only questions of that
-    # category to be shown.
-    # """
     @app.route('/categories/<int:category_id>/questions')
     def get_question_by_category(category_id):
         category = Category.query.filter_by(id=category_id).one_or_none()
@@ -147,11 +141,12 @@ def create_app(test_config=None):
                 'success': True,
                 'questions': current_questions,
                 'total_questions': len(selection),
-                'current_category': selection[1].id
+                'current_category': category.type
             })
         except:
-            abort(400)
             print(sys.exc_info())
+            abort(400)
+            
     # """
     # @TODO:
     # Create a POST endpoint to get questions to play the quiz.
