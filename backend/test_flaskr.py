@@ -55,6 +55,7 @@ class TriviaTestCase(unittest.TestCase):
     Write at least one test for each test for successful operation and for expected errors.
     """
     def test_get_paginated_questions(self):
+        """test for getting all questions in the current page"""
         res = self.client().get('/questions')
         data = json.loads(res.data)
 
@@ -66,6 +67,9 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['categories'])
 
     def test_404_requested_page_outside_range(self):
+        """Test for a failed retrieval of questions due to
+        page out of range
+        """
         res = self.client().get('/questions?page=1000')
         data = json.loads(res.data)
 
@@ -74,6 +78,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['message'], 'resource not found')
 
     def test_get_categories(self):
+        """Test get all categories"""
         res = self.client().get('/categories')
         data = json.loads(res.data)
 
@@ -82,6 +87,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['categories'])
 
     def test_delete_question_of_provided_id(self):
+        """Test delete specific question"""
         res =self.client().delete('/questions/12')
         data = json.loads(res.data)
 
@@ -93,6 +99,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(question, None)
 
     def test_delete_question_if_not_exists(self):
+        """Test failed delete of question which doesn't exist"""
         res = self.client().delete('/questions/400')
         data = json.loads(res.data)
 
@@ -101,6 +108,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['message'],'unprocessable entity')
 
     def test_search_question(self):
+        """Test search question based on provided search term"""
         res = self.client().post('/questions', json=self.search_term)
         data = json.loads(res.data)
 
@@ -112,6 +120,7 @@ class TriviaTestCase(unittest.TestCase):
 
 
     def test_insert_new_question(self):
+        """Test successful addition of new question"""
         res = self.client().post('/questions', json=self.new_question)
         data = json.loads(res.data)
 
@@ -122,6 +131,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['current_category'])
 
     def test_400_if_question_creation_request_incorrect(self):
+        """Test failed addition of new question due to bad request"""
         res = self.client().post('/questions', json=self.new_question_2)
         data = json.loads(res.data)
 
@@ -130,6 +140,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['message'],'bad request')
 
     def test_filter_questions_by_category(self):
+        """Test successful filter by category"""
         res = self.client().get('/categories/3/questions')
         data = json.loads(res.data)
 
@@ -140,12 +151,29 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['current_category'])
 
     def test_404_if_category_not_exists(self):
+        """Test failed filter when category doesn't exist"""
         res = self.client().get('/categories/1000/questions')
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 404)
         self.assertEqual(data['success'], False)
         self.assertTrue(data['message'], 'resource not found')
+
+    def test_play_quiz(self):
+        """Test successful submission of quiz"""
+        res = self.client().post('/quizzes',json=self.new_question)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['quiz_category'])
+        self.assertTrue(data['previous_questions'])
+        self.assertTrue(data['current_question'])
+
+    def test_400_if_quiz_posting_unsuccessful(self):
+        """Test unsuccessful posting of quiz"""
+        ...
+
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()
