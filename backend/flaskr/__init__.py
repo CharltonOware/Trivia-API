@@ -1,4 +1,5 @@
-import sys
+import sys, json
+from random import randrange
 
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -121,7 +122,7 @@ def create_app(test_config=None):
                     'questions': current_questions,
                     'total_questions': len(selection),
                     'current_category': ' '
-                })
+                }), 201
         except:
             print(sys.exc_info())
             abort(400)
@@ -147,17 +148,39 @@ def create_app(test_config=None):
             print(sys.exc_info())
             abort(400)
             
-    # """
-    # @TODO:
-    # Create a POST endpoint to get questions to play the quiz.
-    # This endpoint should take category and previous question parameters
-    # and return a random questions within the given category,
-    # if provided, and that is not one of the previous questions.
+    
+    @app.route('/quizzes',methods=['POST'])
+    def play_quiz():
+        #get request parameters category & previous_question
+        body = request.get_json()
+        quiz_category = body.get('quiz_category', None)
+        previous_questions = body.get('previous_questions', [])
+        #return randomized questions from within category if provided, and if not previous_question
+        try:
+            if quiz_category['id'] == 0:
+                questions = Question.query.filter(Question.id.notin_(previous_questions)).all()
+            else:
+                print(quiz_category)#debugging line
+                questions = Question.query.filter(Question.category == quiz_category['id']).filter(Question.id.notin_(previous_questions)).all()
+            
+            next_question = questions[randrange(len(questions))]
 
-    # TEST: In the "Play" tab, after a user selects "All" or a category,
-    # one question at a time is displayed, the user is allowed to answer
-    # and shown whether they were correct or not.
-    # """
+            if len(previous_questions) > len(questions):
+                res = jsonify({
+                    "success": True,
+                    "question": None
+                })
+            else:
+                res = jsonify({
+                    "success": True,
+                    "question": next_question.format(),
+                })
+            print(res.json) #debugging line
+            return res
+        except:
+            print(sys.exc_info())
+            abort(400)
+         
 
     @app.errorhandler(400)
     def bad_request(error):
