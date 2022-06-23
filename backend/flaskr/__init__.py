@@ -165,7 +165,7 @@ def create_app(test_config=None):
             
             next_question = questions[randrange(len(questions))]
 
-            if len(previous_questions) > len(questions):
+            if len(previous_questions) >= len(questions):
                 res = jsonify({
                     "success": True,
                     "question": None
