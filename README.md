@@ -86,8 +86,8 @@ By making notes ahead of time, you will practice the core skill of being able to
 - General
     - Fetches a paginated list of questions, the total number of all questions returned from the database, the current category, and the categories of the questions currently posted on the app.
 - Sample `curl http://127.0.0.1:5000/questions?page=1`
-- Request arguments: page
-- Returns an object with the keys "success", "questions", "total_questions", "current_category" and "categories" with values True, "paginated_list_of_formatted_questions", "count_of_items_returned_from_questions_table", "catgegory_string" and "dictionary with key 'id' and value 'category_string'" respectively
+- Request arguments: `page` - integer
+- Returns an object with the keys "success", "questions", "total_questions", "current_category" and "categories" with values True, "paginated_list_of_10_formatted_questions", "count_of_items_returned_from_questions_table", "catgegory_string" and "dictionary with key 'id' and value 'category_string'" respectively
 
 ```json 
 {
@@ -134,6 +134,7 @@ By making notes ahead of time, you will practice the core skill of being able to
 - General:
     - Deletes the question of given if it exists.
 - Sample : `curl -X DELETE http://127.0.0.1:5000/questions/2?page=1`
+- Request arguments: `question_id` - integer
 - Returns an object of keys "success" and "questions" with values True and "list of questions based on current page number" respectively
 
 ```json
@@ -162,6 +163,15 @@ By making notes ahead of time, you will practice the core skill of being able to
 
 `POST '/questions'`
 - General : Creates a new question using the submitted question, answer, category and difficulty.
+- Request body: 
+```json
+{
+    "question": "New question",
+    "answer": "Answer to new question",
+    "category": "2",
+    "difficulty": 3
+}
+```
 - Sample: `curl http://127.0.0.1:5000/questions?page=1 -X POST -H "Content-Type: application/json" -d '{"question": "How many paintings did Van Gogh sell in his lifetime?", "answer": "One", "category": "2", "difficulty": 4}'`
 - Returns: An object with keys "success", "questions", "total_questions" and "current_category" with values True, list_of_paginated_questions, count_of_questions_in_the_table and a category string respectively.
 
@@ -189,6 +199,13 @@ By making notes ahead of time, you will practice the core skill of being able to
     "current_category": " "
 }
 ```
+`POST '/questions'`
+- General: Searches for a question(s) that matches the searchterm provided in the request.
+- Request body: 
+```json
+    "searchterm": "match this string"
+```
+- Returns: An object with keys "success", "questions", "total_questions" and "current_category" with values True, list_of_paginated_questions, count_of_questions_in_the_table and a category string respectively.
 
 `GET '/categories/{category_id}/questions'`
 - General: Fetches all questions that belong to the category of id provided
@@ -222,6 +239,16 @@ By making notes ahead of time, you will practice the core skill of being able to
 
 `POST '/quizzes'`
 - General: Fetches random questions depending on the selected category and then displays 'correct' or 'failed' depending on the player's answer. If all the questions in the category have been played, it returns a blank page.
+- Request body :
+```json
+{
+    "previous_questions": [1,3,15,6],
+    "current_category": current_category
+}
+    
+```
+- Returns: An object with keys "success" and "question" with values True and a formatted question object respectively.
+
 ```json
 {
     "success": True,
