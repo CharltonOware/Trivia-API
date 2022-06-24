@@ -53,6 +53,8 @@ def create_app(test_config=None):
                 abort(404)
             current_questions = paginate_questions(request, selection)
             categories = Category.query.all()
+            if len(current_questions) == 0:
+                abort(404)
             #store dictionary object having 'id': 'type' key:value pairs of the existing categories
             formatted_categories = {category.id: category.type for category in categories}
             

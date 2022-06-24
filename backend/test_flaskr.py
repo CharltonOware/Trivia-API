@@ -72,7 +72,7 @@ class TriviaTestCase(unittest.TestCase):
         """Test for a failed retrieval of questions due to
         page out of range
         """
-        res = self.client().get('/questions?page=1000')
+        res = self.client().get('/questions?page=1000', json={})
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 404)
@@ -187,7 +187,7 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_400_if_quiz_posting_unsuccessful(self):
         """Test unsuccessful posting of quiz"""
-        res = self.client().post('/quizzes')
+        res = self.client().post('/quizzes', json={})
         data =json.loads(res.data)
 
         self.assertEqual(res.status_code, 400)
