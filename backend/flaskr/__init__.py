@@ -47,21 +47,25 @@ def create_app(test_config=None):
 
     @app.route('/questions')
     def get_paginated_questions():
-        selection = Question.query.order_by(Question.id).all()
-        if selection is None:
+        try:
+            selection = Question.query.order_by(Question.id).all()
+            if selection is None:
+                abort(404)
+            current_questions = paginate_questions(request, selection)
+            categories = Category.query.all()
+            #store dictionary object having 'id': 'type' key:value pairs of the existing categories
+            formatted_categories = {category.id: category.type for category in categories}
+            
+            return jsonify({
+                "success": True,
+                "questions": current_questions,
+                "total_questions": len(selection),
+                "current_category": 'Sports',
+                "categories": formatted_categories
+            })
+        except:
+            print(sys.exc_info())
             abort(404)
-        current_questions = paginate_questions(request, selection)
-        categories = Category.query.all()
-        #store dictionary object having 'id': 'type' key:value pairs of the existing categories
-        formatted_categories = {category.id: category.type for category in categories}
-        
-        return jsonify({
-            "success": True,
-            "questions": current_questions,
-            "total_questions": len(selection),
-            "current_category": 'Sports',
-            "categories": formatted_categories
-        })
 
     
     @app.route('/questions/<int:question_id>', methods=['DELETE'])
@@ -82,13 +86,6 @@ def create_app(test_config=None):
             print(sys.exc_info())
             abort(422)
 
-
-
-    """
-    TEST: When you submit a question on the "Add" tab,
-    the form will clear and the question will appear at the end of the last page
-    of the questions list in the "List" tab.
-     """
     @app.route('/questions', methods=['POST'])
     def create_new_question():
         body = request.get_json()
