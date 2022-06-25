@@ -42,8 +42,9 @@ class TriviaTestCase(unittest.TestCase):
         self.alternative_search_term = {"searchTerm": 'elimi'}
 
         self.new_request = {"previous_questions": [1, 4, 20, 15],
-                            "quiz_category": {"id": 1}
+                            "quiz_category": {"id": 2}
                             }
+        
 
         # binds the app to the current context
         with self.app.app_context():
@@ -90,24 +91,27 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_delete_question_of_provided_id(self):
         """Test delete specific question"""
-        res =self.client().delete('/questions/15')
+        res =self.client().delete('/questions/20')
         data = json.loads(res.data)
-
-        question = Question.query.filter(Question.id == 12).one_or_none()
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'],True)
         self.assertTrue(data['questions'])
-        self.assertEqual(question, None)
+        
 
-    def test_delete_question_if_not_exists(self):
+    def test_404_delete_question_if_not_exists(self):
         """Test failed delete of question which doesn't exist"""
-        res = self.client().delete('/questions/400')
+        #Please alter the value below to run the test
+        question_id = 400
+        res = self.client().delete('/questions/{question_id}')
         data = json.loads(res.data)
 
-        self.assertEqual(res.status_code, 422)
+        question = Question.query.filter(Question.id == question_id).one_or_none()
+
+        self.assertEqual(res.status_code, 404)
         self.assertEqual(data['success'], False)
-        self.assertEqual(data['message'],'unprocessable entity')
+        self.assertEqual(data['message'],'resource not found')
+        self.assertEqual(question, None)
 
     def test_search_question(self):
         """Test search question based on provided search term"""
@@ -169,8 +173,8 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['message'], 'resource not found')
 
     def test_filter_questions_by_category_if_no_questions(self):
-        """Test returns empty list when no questions for the chosen category"""
-        res = self.client().get('/categories/3/questions')
+        """Test returns empty list when all questions in the provided category had been deleted"""
+        res = self.client().get('/categories/1/questions')
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
