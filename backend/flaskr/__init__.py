@@ -82,6 +82,7 @@ def create_app(test_config=None):
             current_questions = paginate_questions(request, questions)
             return jsonify({
                 'success': True,
+                'deleted': question_id,
                 'questions': current_questions
             })
         except:
