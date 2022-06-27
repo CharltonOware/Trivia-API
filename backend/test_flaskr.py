@@ -173,12 +173,13 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_filter_questions_by_category_if_no_questions(self):
         """Test returns empty list when all questions in the provided category had been deleted"""
+        #change below value to test any category of your choice
+        category_id = 1
+        res = self.client().get('/categories/{category_id}/questions')
         
-        res = self.client().get('/categories/1/questions')
-        data = json.loads(res.data)
         #Delete target questions to ensure test passes
-        Question.query.filter(Question.category==1).delete()
-        questions = Question.query.filter(Question.category==1).all()
+        Question.query.filter(Question.category == category_id).delete()
+        questions = Question.query.filter(Question.category == category_id).all()
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(questions, [])
